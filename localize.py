@@ -33,9 +33,9 @@ def load_map(path):
     return points
 
 
-def align(points, tree, prior, radius):
+def align(points, tree, prior, radius, iterations=8):
     transform = prior.copy()
-    for _ in range(8):
+    for _ in range(iterations):
         moved = points @ transform[:3, :3].T + transform[:3, 3]
         distances, indices = tree.query(moved, distance_upper_bound=radius)
         matches = np.flatnonzero(np.isfinite(distances))
@@ -125,10 +125,13 @@ class Localizer(Node):
         odom[:3, :3], odom[:3, 3] = rotation(state[3:]), state[:3]
         raw = read_points(msg, field_names=("x", "y", "z"), skip_nans=True)
         cloud = np.column_stack([raw[name] for name in ("x", "y", "z")])
-        cloud = cloud[::max(1, len(cloud)//4500)]
+        if self.args.fast:
+            cloud = cloud[::max(1, (len(cloud)+599)//600)]
+        else:
+            cloud = cloud[::max(1, len(cloud)//4500)]
         cloud = voxel(cloud[np.isfinite(cloud).all(axis=1)], 0.18)[:3500]
         prior = self.correction @ odom
-        estimate, overlap, residual = align(cloud, self.tree, prior, self.args.radius) if len(cloud) >= 100 else (None, 0.0, float("nan"))
+        estimate, overlap, residual = align(cloud, self.tree, prior, self.args.radius, iterations=5 if self.args.fast else 8) if len(cloud) >= 100 else (None, 0.0, float("nan"))
         if estimate is not None:
             self.correction = estimate @ np.linalg.inv(odom)
         result = prior if estimate is None else estimate
@@ -150,6 +153,7 @@ def main():
     parser.add_argument("--odom", default="/utlidar/robot_odom")
     parser.add_argument("--base-frame", default="base_link")
     parser.add_argument("--initial", type=float, nargs=4, required=True, metavar=("X", "Y", "Z", "YAW_DEG"))
+    parser.add_argument("--fast", action="store_true", help="Use up to 600 input points and five ICP iterations")
     parser.add_argument("--radius", type=float, default=0.7)
     parser.add_argument("--metrics", type=Path, default=Path("localization.csv"))
     args, ros_args = parser.parse_known_args()
@@ -168,4 +172,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
