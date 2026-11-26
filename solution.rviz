@@ -1,0 +1,36 @@
+Panels:
+  - Class: rviz_common/Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Fixed 3D map
+      Enabled: true
+      Topic:
+        Value: /solution/map
+        Durability Policy: Transient Local
+        Reliability Policy: Reliable
+      Style: Points
+      Size (Pixels): 3
+      Color Transformer: AxisColor
+    - Class: rviz_default_plugins/Pose
+      Name: Localized robot
+      Enabled: true
+      Topic:
+        Value: /solution/pose
+      Shape: Arrow
+  Enabled: true
+  Global Options:
+    Fixed Frame: map
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 12
+      Pitch: 1.25
+      Yaw: 0.5

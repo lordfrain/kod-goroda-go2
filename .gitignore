@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.mcap
+*.db3
+*.bag
+*.zip
+mapping/
+localization.csv
