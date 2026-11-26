@@ -28,7 +28,7 @@ rviz2 -d solution.rviz
 ```
 
 ```bash
-ros2 bag record -s mcap -o result.bag /solution/map /solution/pose
+ros2 bag record -s mcap -o result.bag /map /solution/aligned_cloud /solution/pose
 ```
 
 Дождитесь подписок и воспроизведите второй проход в масштабе времени 1:1:
@@ -38,7 +38,9 @@ ros2 bag play "$LOCALIZATION_BAG" --clock --rate 1.0 \
   --topics /utlidar/cloud_base /utlidar/robot_odom
 ```
 
-Остановите запись через Ctrl+C. result.bag — папка rosbag2 с metadata.yaml и MCAP. Заархивируйте её целиком. Проверьте ros2 bag info result.bag, наличие обоих топиков и воспроизводимость. Запишите экран RViz с видом сверху и затем с наклонным ракурсом.
+В RViz Fixed 3D map отображает /map (PointCloud2, готовая 3D-карта), а Current scan aligned to map отображает /solution/aligned_cloud (обновляемый скан в координатах карты). Стрелка получает /solution/pose. Для слоя сканов используйте Decay Time 0, чтобы видеть только текущий скан.
+
+Остановите запись через Ctrl+C. result.bag — папка rosbag2 с metadata.yaml и MCAP. Заархивируйте её целиком. Проверьте ros2 bag info result.bag, наличие трёх топиков и воспроизводимость. Запишите экран RViz с видом сверху и затем с наклонным ракурсом.
 
 В localization.csv compute_ms измеряет обработку от начала сопоставления по времени до публикации, callback_to_publish_ms включает ожидание одометрии после приёма облака. Для слайдов посчитайте p50/p95, долю ICP, предсказаний odom и пропусков и сравните время с фактическим периодом лидара. Остаток ICP оценивает согласование с картой, абсолютная точность требует независимого эталона. При плохом перекрытии или слишком большой поправке используется прогноз кинематической одометрии.
 

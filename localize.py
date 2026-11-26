@@ -77,9 +77,10 @@ class Localizer(Node):
         self.correction = np.eye(4)
         self.correction[:3, :3] = Rotation.from_euler("z", yaw, degrees=True).as_matrix()
         self.correction[:3, 3] = [tx, ty, tz]
-        self.map_pub = self.create_publisher(PointCloud2, "/solution/map", QoSProfile(
+        self.map_pub = self.create_publisher(PointCloud2, "/map", QoSProfile(
             depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         self.map_pub.publish(create_cloud_xyz32(Header(frame_id="map"), points))
+        self.cloud_pub = self.create_publisher(PointCloud2, "/solution/aligned_cloud", 5)
         self.pose_pub = self.create_publisher(PoseStamped, "/solution/pose", 20)
         self.create_subscription(Odometry, args.odom, self.on_odom, qos_profile_sensor_data)
         self.create_subscription(PointCloud2, args.cloud, self.on_cloud, qos_profile_sensor_data)
@@ -141,6 +142,8 @@ class Localizer(Node):
         q = Rotation.from_matrix(result[:3, :3]).as_quat()
         pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w = map(float, q)
         self.pose_pub.publish(pose)
+        aligned = cloud @ result[:3, :3].T + result[:3, 3]
+        self.cloud_pub.publish(create_cloud_xyz32(pose.header, aligned.astype(np.float32)))
         end = perf_counter()
         self.csv.writerow([t, "icp" if estimate is not None else "odom_prediction",
                            1000*(end-start), 1000*(end-received), overlap, residual])
@@ -172,5 +175,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

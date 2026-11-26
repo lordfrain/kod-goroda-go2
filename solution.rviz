@@ -10,12 +10,22 @@ Visualization Manager:
       Name: Fixed 3D map
       Enabled: true
       Topic:
-        Value: /solution/map
+        Value: /map
         Durability Policy: Transient Local
         Reliability Policy: Reliable
       Style: Points
       Size (Pixels): 3
       Color Transformer: AxisColor
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Current scan aligned to map
+      Enabled: true
+      Topic:
+        Value: /solution/aligned_cloud
+        Reliability Policy: Reliable
+      Style: Points
+      Size (Pixels): 5
+      Color Transformer: FlatColor
+      Color: 255; 70; 70
     - Class: rviz_default_plugins/Pose
       Name: Localized robot
       Enabled: true
